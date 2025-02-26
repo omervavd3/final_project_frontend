@@ -7,8 +7,11 @@ import { useState } from "react";
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
-  name: z.string().nonempty("Name is required"),
-  password: z.string().nonempty("Password is required").min(8, "Password must be at least 8 characters"),
+  userName: z.string().nonempty("Name is required"),
+  password: z
+    .string()
+    .nonempty("Password is required")
+    .min(8, "Password must be at least 8 characters"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -31,12 +34,16 @@ const Signup = () => {
     reset();
     console.log(data);
     axios
-      .post("http://localhost:3000/user/login", data)
+      .post("http://localhost:3000/auth/register", data)
       .then((response) => {
         console.log(response);
+        if (response.status === 201) {
+          navigate("/");
+        }
       })
       .catch((error) => {
         console.error(error);
+        alert("An error occurred. Please try again.");
       });
   };
 
@@ -45,7 +52,7 @@ const Signup = () => {
       <div className="card p-4 shadow" style={{ width: "350px" }}>
         <h2 className="text-center mb-4">Sign Up</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="mb-3">
+          <div className="mb-3">
             <label htmlFor="email" className="form-label">
               Email address
             </label>
@@ -68,11 +75,11 @@ const Signup = () => {
               type="text"
               id="name"
               placeholder="Enter name"
-              {...register("name")}
-              className={`form-control ${errors.name ? "is-invalid" : ""}`}
+              {...register("userName")}
+              className={`form-control ${errors.userName ? "is-invalid" : ""}`}
             />
-            {errors.name && (
-              <p className="text-danger">{errors.name.message}</p>
+            {errors.userName && (
+              <p className="text-danger">{errors.userName.message}</p>
             )}
           </div>
           <div className="mb-3">

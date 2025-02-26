@@ -30,12 +30,18 @@ const Login = () => {
     reset();
     console.log(data);
     axios
-      .post("http://localhost:3000/user/login", data)
+      .post("http://localhost:3000/auth/login", data, {
+        withCredentials: true,
+      })
       .then((response) => {
         console.log(response);
+        if (response.status === 200) {
+          navigate("/");
+        }
       })
       .catch((error) => {
         console.error(error);
+        alert("Username or password is incorrect.");
       });
   };
 
@@ -91,7 +97,10 @@ const Login = () => {
           </button>
         </form>
         <div className="text-center mt-3">
-          <a onClick={() => navigate("/signup")} className="text-decoration-none">
+          <a
+            onClick={() => navigate("/signup")}
+            className="text-decoration-none"
+          >
             Don't have an account? Sign up
           </a>
         </div>
