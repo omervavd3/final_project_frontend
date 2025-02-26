@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
+import AuthAccess from "./AuthAccess";
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
@@ -35,8 +36,8 @@ const Login = () => {
       })
       .then((response) => {
         console.log(response);
-        if (response.status === 200) {
-          navigate("/");
+        if (response.status == 200) {
+          navigate("/home");
         }
       })
       .catch((error) => {
@@ -47,6 +48,7 @@ const Login = () => {
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <AuthAccess where_to_navigate="/"/>
       <div className="card p-4 shadow" style={{ width: "350px" }}>
         <h2 className="text-center mb-4">Login</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
