@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Post from "./Post";
 import AuthAccess from "./AuthAccess";
+import Logout from "./Logout";
 
 type Post = {
   title: string;
@@ -28,6 +29,7 @@ const HomePage = () => {
     <div>
       <AuthAccess where_to_navigate="/" />
       <h1>Home Page</h1>
+      <Logout />
       {posts ? (
         posts.map((post, index) => (
           <Post
