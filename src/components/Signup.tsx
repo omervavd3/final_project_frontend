@@ -13,6 +13,7 @@ const schema = z.object({
     .string()
     .nonempty("Password is required")
     .min(8, "Password must be at least 8 characters"),
+  profile: z.instanceof(FileList),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -20,6 +21,7 @@ type FormData = z.infer<typeof schema>;
 const Signup = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [image, setImage] = useState("../assets/icons8-avatar-96.png");
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -48,12 +50,58 @@ const Signup = () => {
       });
   };
 
+  const handleFileChange = (event: any) => {
+    const file = event.target.files[0]; // Get the selected file
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setImage(reader.result); // Set the base64 image result to the state
+        }
+      };
+
+      reader.readAsDataURL(file); // Read the file as a data URL
+      
+    }
+  };
+
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div className="d-flex justify-content-center align-items-center bg-light">
       <AuthAccess where_to_navigate="/signup" />
-      <div className="card p-4 shadow" style={{ width: "350px" }}>
-        <h2 className="text-center mb-4">Sign Up</h2>
+      <div
+        className="card p-4 shadow-lg"
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          borderRadius: "10px",
+          margin: "0 10px",
+        }}
+      >
+        <h2 className="text-center mb-4 font-weight-bold">Sign Up</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-3">
+            <img
+              src={image}
+              alt="Profile"
+              className="img-fluid mb-3"
+              style={{
+                width: "150px",
+                height: "150px",
+                objectFit: "contain",
+                margin: "auto",
+                display: "block",
+              }}
+            />
+            <input
+              type="file"
+              {...register("profile")}
+              onChange={handleFileChange}
+              className="form-control-file"
+              id="fileUpload"
+            />
+          </div>
           <div className="mb-3">
             <label htmlFor="email" className="form-label">
               Email address
@@ -66,7 +114,7 @@ const Signup = () => {
               className={`form-control ${errors.email ? "is-invalid" : ""}`}
             />
             {errors.email && (
-              <p className="text-danger">{errors.email.message}</p>
+              <div className="invalid-feedback">{errors.email.message}</div>
             )}
           </div>
           <div className="mb-3">
@@ -81,7 +129,7 @@ const Signup = () => {
               className={`form-control ${errors.userName ? "is-invalid" : ""}`}
             />
             {errors.userName && (
-              <p className="text-danger">{errors.userName.message}</p>
+              <div className="invalid-feedback">{errors.userName.message}</div>
             )}
           </div>
           <div className="mb-3">
@@ -96,7 +144,7 @@ const Signup = () => {
               {...register("password")}
             />
             {errors.password && (
-              <p className="text-danger">{errors.password.message}</p>
+              <div className="invalid-feedback">{errors.password.message}</div>
             )}
             <div className="form-check mt-2">
               <input
@@ -111,12 +159,15 @@ const Signup = () => {
               </label>
             </div>
           </div>
-          <button type="submit" className="btn btn-primary w-100">
+          <button type="submit" className="btn btn-primary w-100 mt-3">
             Sign up
           </button>
         </form>
         <div className="text-center mt-3">
-          <a onClick={() => navigate("/")} className="text-decoration-none">
+          <a
+            onClick={() => navigate("/")}
+            className="text-decoration-none"
+          >
             Have an account? Login
           </a>
         </div>
