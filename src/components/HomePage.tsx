@@ -2,8 +2,6 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Post from "./Post";
 import AuthAccess from "./AuthAccess";
-import Logout from "./Logout";
-import { useNavigate } from "react-router";
 import Navbar from "./NavBar";
 
 type Post = {
@@ -12,17 +10,18 @@ type Post = {
   owner: string;
   date: string;
   photo: string;
+  comments: string[];
+  likes: number;
+  _id: string;
 };
 
 const HomePage = () => {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   useEffect(() => {
     axios
       .get("http://localhost:3000/posts")
       .then((response) => {
-        console.log(response.data);
         setPosts(response.data);
       })
       .catch((error) => {
@@ -40,7 +39,6 @@ const HomePage = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
         setProfileImage(response.data);
       })
       .catch((error) => {
@@ -50,6 +48,7 @@ const HomePage = () => {
   }, []);
   return (
     <div className="container mt-5">
+      <AuthAccess where_to_navigate="/" />
       {/* Navbar */}
       <Navbar />
 
@@ -83,6 +82,9 @@ const HomePage = () => {
                   title={post.title}
                   content={post.content}
                   photo={post.photo}
+                  comments={post.comments}
+                  likes={post.likes}
+                  _id={post._id}
                 />
               </div>
             ))

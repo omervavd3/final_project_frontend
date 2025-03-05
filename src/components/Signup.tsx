@@ -3,7 +3,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AuthAccess from "./AuthAccess";
 import avatar from "../assets/icons8-avatar-96.png";
 
