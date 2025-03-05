@@ -5,7 +5,13 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import AuthAccess from "./AuthAccess";
-import avatar from '../assets/icons8-avatar-96.png'
+import avatar from "../assets/icons8-avatar-96.png";
+
+// Define apiClient using axios
+const apiClient = axios.create({
+  baseURL: "http://localhost:3000",
+});
+
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
@@ -14,7 +20,6 @@ const schema = z.object({
     .string()
     .nonempty("Password is required")
     .min(8, "Password must be at least 8 characters"),
-  profile: z.string(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -22,75 +27,76 @@ type FormData = z.infer<typeof schema>;
 const Signup = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [image, setImage] = useState("");
-  
-  useEffect(() => {
-    setImage(avatar)
-  }, [])
-  
+  const [image, setImage] = useState<File | null>(null);
+
   const {
     register,
     handleSubmit,
     reset,
-    // watch,
-    setValue,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
-  // const [profile] = watch(["profile"])
-  // const { ref, ...rest } = register("profile", {required: true});
+  // const { ref, ...rest } = register("profile");
+  // const [profile] = watch(["profile"]);
 
-//   useEffect(() => {
-//     if (profile && profile[0]) {
-//         const newUrl = URL.createObjectURL(profile[0]);
-//         setImage(newUrl);
-//         console.log(newUrl)
-//     }
-// }, [profile]);
+  // useEffect(() => {
+  //   if (profile) {
+  //     setImage(profile[0]);
+  //   }
+  // }, [profile]);
+  const changeImage = (e: any) => {
+    console.log(e.target.files[0]);
+    setImage(e.target.files[0]);
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
   const onSubmit = (data: FormData) => {
-    console.log(data);
+    //create new form data that includes image
     reset();
+    const file = image;
+    console.log("uploadImg");
+    console.log(file);
     const formData = new FormData();
-    formData.append("file", data.profile);
-
-    axios
-      .post("http://localhost:3000/file?file=123.jpeg", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    axios
-      .post("http://localhost:3000/auth/register", data)
-      .then((response) => {
-        console.log(response);
-        if (response.status === 201) {
-          navigate("/");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("An error occurred. Please try again.");
-      });
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.files?.[0])
-    if(event.target.files && event.target.files.length > 0) {
-      const newUrl = URL.createObjectURL(event.target.files[0])
-      setImage(newUrl)
-      console.log(newUrl)
-      setValue("profile", newUrl)
+    if (file) {
+      formData.append("file", file);
+      apiClient
+        .post("/file?file=123.jpeg", formData, {
+          headers: {
+            "Content-Type": "image/jpeg",
+          },
+        })
+        .then((res) => {
+          console.log(res);
+          if (res.status !== 200) {
+            alert("An error occurred. Please try again.");
+            return;
+          }
+          const url = res.data.url;
+          const newUserData = {
+            email: data.email,
+            userName: data.userName,
+            password: data.password,
+            profileImageUrl: url,
+          }
+          axios
+            .post("http://localhost:3000/auth/register", newUserData)
+            .then((response) => {
+              console.log(response);
+              if (response.status === 201) {
+                navigate("/");
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+              alert("An error occurred. Please try again.");
+            });
+        })
+        .catch((err) => {
+          console.log(err);
+          alert("An error occurred. Please try again.");
+        });
     }
   };
 
@@ -109,31 +115,38 @@ const Signup = () => {
         <h2 className="text-center mb-4 font-weight-bold">Sign Up</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-3">
-            <img
-              src={image || avatar}
-              alt="Profile"
-              className="img-fluid mb-3"
+            <div
               style={{
-                width: "150px",
-                height: "150px",
-                objectFit: "contain",
-                margin: "auto",
-                display: "block",
+                display: "flex",
+                justifyContent: "center",
+                position: "relative",
               }}
-            />
+            >
+              <img
+                src={image ? URL.createObjectURL(image) : avatar}
+                style={{ width: "200px", height: "200px", alignSelf: "center" }}
+              />
+              {/* <FontAwesomeIcon
+                onClick={() => {
+                  inputFileRef.current?.click();
+                }}
+                icon={faImage}
+                className="fa-xl"
+                style={{ position: "absolute", bottom: "0", right: "0" }}
+              /> */}
+            </div>
             <input
-              type="file"
               // {...rest}
-              // ref={(e) => {ref(e)}}
-              // {...register("profile")}
-              onChange={handleFileChange}
-              className="form-control-file"
-              id="profile"
-              name="profile"
+              // ref={(e) => {
+              //   ref(e);
+              //   inputFileRef.current = e;
+              // }}
+              onChange={changeImage}
+              type="file"
+              className="mb-3"
               accept="image/jpeg, image/png"
+              // style={{ display: "none" }}
             />
-            {/* <label htmlFor="profile">Upload a Photo</label>
-            <input {...rest} ref ={(e) => {ref(e)}} type="file" id="profile" name="profile" accept="image/png, image/jpeg" /> */}
           </div>
           <div className="mb-3">
             <label htmlFor="email" className="form-label">
