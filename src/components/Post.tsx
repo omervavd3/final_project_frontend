@@ -13,8 +13,8 @@ type PostProps = {
   likes: number;
   _id: string;
   userName: string;
-  profileImageUrl: string;
   ownerName: string;
+  ownerPhoto: string;
 };
 
 type comment = {
@@ -30,8 +30,8 @@ const Post: FC<PostProps> = ({
   likes,
   _id,
   userName,
-  profileImageUrl: userProfile,
   ownerName,
+  ownerPhoto,
 }) => {
   const schema = z.object({
     comment: z.string().nonempty("Comment is required"),
@@ -182,7 +182,7 @@ const Post: FC<PostProps> = ({
       {/* User Info */}
       <div className="d-flex align-items-center p-2">
         <img
-          src={userProfile}
+          src={ownerPhoto}
           alt="User"
           className="rounded-circle me-2"
           style={{ width: "40px", height: "40px" }}

@@ -5,9 +5,10 @@ import Logout from "./Logout";
 
 type NavbarProps = {
   userName: string;
+  profileImageUrl: string;
 };
 
-const Navbar:FC<NavbarProps> = ({userName}) => {
+const Navbar:FC<NavbarProps> = ({userName, profileImageUrl}) => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
@@ -75,7 +76,7 @@ const Navbar:FC<NavbarProps> = ({userName}) => {
                 ></button>
               </div>
               <div className="modal-body">
-                <AddPost userName={userName}/>
+                <AddPost userName={userName} profileImageUrl={profileImageUrl} />
               </div>
               <div className="modal-footer">
                 <button

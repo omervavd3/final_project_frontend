@@ -7,6 +7,7 @@ import avatar from "../assets/icons8-avatar-96.png";
 
 type AddPostProps = {
   userName: string;
+  profileImageUrl: string;
 };
 
 const apiClient = axios.create({
@@ -20,7 +21,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const AddPost:FC<AddPostProps> = ({userName}) => {
+const AddPost:FC<AddPostProps> = ({userName, profileImageUrl}) => {
   const [image, setImage] = useState<File | null>(null);
 
   const {
@@ -62,6 +63,7 @@ const AddPost:FC<AddPostProps> = ({userName}) => {
             content: data.content,
             photo: url,
             ownerName: userName,
+            ownerPhoto: profileImageUrl,
           }
           axios
             .post("http://localhost:3000/posts", newPostData, {

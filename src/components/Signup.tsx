@@ -12,7 +12,6 @@ const apiClient = axios.create({
   baseURL: "http://localhost:3000",
 });
 
-
 const schema = z.object({
   email: z.string().email("Invalid email"),
   userName: z.string().nonempty("Name is required"),
@@ -79,7 +78,7 @@ const Signup = () => {
             userName: data.userName,
             password: data.password,
             profileImageUrl: url,
-          }
+          };
           axios
             .post("http://localhost:3000/auth/register", newUserData)
             .then((response) => {

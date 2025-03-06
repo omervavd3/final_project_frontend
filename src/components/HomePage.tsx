@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Post from "./Post";
 import AuthAccess from "./AuthAccess";
 import Navbar from "./NavBar";
+import { useNavigate } from "react-router";
 
 type Post = {
   title: string;
@@ -14,47 +15,53 @@ type Post = {
   comments: string[];
   likes: number;
   _id: string;
+  ownerPhoto: string;
 };
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
   const [userName, setUserName] = useState<string>("user");
   useEffect(() => {
-    axios
-      .get("http://localhost:3000/posts")
-      .then((response) => {
-        setPosts(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-        setPosts([]);
-      });
+    if (!document.cookie.includes("accessToken")) {
+      navigate("/");
+    } else {
+      axios
+        .get("http://localhost:3000/posts")
+        .then((response) => {
+          setPosts(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+          setPosts([]);
+        });
 
-    axios
-      .get("http://localhost:3000/auth/getProfileImageUrlAndName", {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${
-            document.cookie.split("accessToken=")[1].split(";")[0]
-          }`,
-        },
-      })
-      .then((response) => {
-        setProfileImage(response.data.profileImageUrl);
-        setUserName(response.data.userName);
-      })
-      .catch((error) => {
-        console.error(error);
-        setProfileImage("");
-      });
+      axios
+        .get("http://localhost:3000/auth/getProfileImageUrlAndName", {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${
+              document.cookie.split("accessToken=")[1].split(";")[0]
+            }`,
+          },
+        })
+        .then((response) => {
+          setProfileImage(response.data.profileImageUrl);
+          setUserName(response.data.userName);
+        })
+        .catch((error) => {
+          console.error(error);
+          setProfileImage("");
+        });
+    }
   }, []);
 
   return (
     <div className="container mt-5">
       <AuthAccess where_to_navigate="/" />
       {/* Navbar */}
-      <Navbar userName={userName}/>
+      <Navbar userName={userName} profileImageUrl={profileImage} />
 
       {/* Page Title */}
       <div className="text-center mb-4">
@@ -89,7 +96,7 @@ const HomePage = () => {
                   likes={post.likes}
                   _id={post._id}
                   userName={userName}
-                  profileImageUrl={profileImage}
+                  ownerPhoto={post.ownerPhoto}
                   ownerName={post.ownerName}
                 />
               </div>

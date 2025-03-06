@@ -8,11 +8,14 @@ type AuthAccessProps = {
 
 const AuthAccess: FC<AuthAccessProps> = ({ where_to_navigate }) => {
   const navigate = useNavigate();
-  useEffect(() => {
-    if (document.cookie.includes("accessToken") && document.cookie.includes("refreshToken")) {
+  const checkAuth = async () => {
+    if (
+      document.cookie.includes("accessToken") &&
+      document.cookie.includes("refreshToken")
+    ) {
       navigate("/home");
     } else if (document.cookie.includes("refreshToken")) {
-      axios
+      await axios
         .post(
           "http://localhost:3000/auth/refresh",
           {},
@@ -35,8 +38,11 @@ const AuthAccess: FC<AuthAccessProps> = ({ where_to_navigate }) => {
           navigate(`${where_to_navigate}`);
         });
     } else {
-        navigate(`${where_to_navigate}`);
+      navigate(`${where_to_navigate}`);
     }
+  };
+  useEffect(() => {
+    checkAuth();
   }, []);
   return <></>;
 };
