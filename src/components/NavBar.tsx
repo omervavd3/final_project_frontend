@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddPost from "./AddPost"; // Import your AddPost component
 import Logout from "./Logout";
 
-const Navbar = () => {
+type NavbarProps = {
+  userName: string;
+};
+
+const Navbar:FC<NavbarProps> = ({userName}) => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
@@ -71,7 +75,7 @@ const Navbar = () => {
                 ></button>
               </div>
               <div className="modal-body">
-                <AddPost />
+                <AddPost userName={userName}/>
               </div>
               <div className="modal-footer">
                 <button

@@ -1,9 +1,13 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { FC, useState } from "react";
 import axios from "axios";
 import avatar from "../assets/icons8-avatar-96.png";
+
+type AddPostProps = {
+  userName: string;
+};
 
 const apiClient = axios.create({
     baseURL: "http://localhost:3000",
@@ -16,7 +20,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const AddPost = () => {
+const AddPost:FC<AddPostProps> = ({userName}) => {
   const [image, setImage] = useState<File | null>(null);
 
   const {
@@ -57,6 +61,7 @@ const AddPost = () => {
             title: data.title,
             content: data.content,
             photo: url,
+            ownerName: userName,
           }
           axios
             .post("http://localhost:3000/posts", newPostData, {

@@ -8,6 +8,7 @@ type Post = {
   title: string;
   content: string;
   owner: string;
+  ownerName: string;
   date: string;
   photo: string;
   comments: string[];
@@ -17,7 +18,8 @@ type Post = {
 
 const HomePage = () => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string>("");
+  const [userName, setUserName] = useState<string>("user");
   useEffect(() => {
     axios
       .get("http://localhost:3000/posts")
@@ -30,7 +32,7 @@ const HomePage = () => {
       });
 
     axios
-      .get("http://localhost:3000/auth/profileImageUrl", {
+      .get("http://localhost:3000/auth/getProfileImageUrlAndName", {
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${
@@ -39,22 +41,24 @@ const HomePage = () => {
         },
       })
       .then((response) => {
-        setProfileImage(response.data);
+        setProfileImage(response.data.profileImageUrl);
+        setUserName(response.data.userName);
       })
       .catch((error) => {
         console.error(error);
-        setProfileImage(null);
+        setProfileImage("");
       });
   }, []);
+
   return (
     <div className="container mt-5">
       <AuthAccess where_to_navigate="/" />
       {/* Navbar */}
-      <Navbar />
+      <Navbar userName={userName}/>
 
       {/* Page Title */}
       <div className="text-center mb-4">
-        <h1 className="fw-bold">Home Page</h1>
+        <h1 className="fw-bold">Welcome {userName}</h1>
       </div>
 
       {/* Profile Image */}
@@ -82,9 +86,11 @@ const HomePage = () => {
                   title={post.title}
                   content={post.content}
                   photo={post.photo}
-                  comments={post.comments}
                   likes={post.likes}
                   _id={post._id}
+                  userName={userName}
+                  profileImageUrl={profileImage}
+                  ownerName={post.ownerName}
                 />
               </div>
             ))

@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { FC, useEffect, useState } from "react";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import heart_black from "../assets/heart_black.png";
 import heart_red from "../assets/heart_red.png";
@@ -10,18 +10,28 @@ type PostProps = {
   title: string;
   content: string;
   photo: string;
-  comments: string[];
   likes: number;
   _id: string;
+  userName: string;
+  profileImageUrl: string;
+  ownerName: string;
+};
+
+type comment = {
+  _id: string;
+  comment: string;
+  ownerName: string;
 };
 
 const Post: FC<PostProps> = ({
   title,
   content,
   photo,
-  comments,
   likes,
   _id,
+  userName,
+  profileImageUrl: userProfile,
+  ownerName,
 }) => {
   const schema = z.object({
     comment: z.string().nonempty("Comment is required"),
@@ -30,29 +40,34 @@ const Post: FC<PostProps> = ({
   const [liked, setLiked] = useState(false);
   const [heart, setHeart] = useState(heart_black);
   const [numOfLikes, setNumOfLikes] = useState(likes);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [comments, setComments] = useState([]);
 
   type FormData = z.infer<typeof schema>;
 
   useEffect(() => {
+    fetchComments();
+  }, [page]);
+
+  const fetchComments = async () => {
     axios
-      .post(
-        `http://localhost:3000/comments/getByPostId`,
-        { postId: _id },
-        {
-          headers: {
-            Authorization: `Bearer ${
-              document.cookie.split("accessToken=")[1].split(";")[0]
-            }`,
-          },
-        }
-      )
+      .get(`http://localhost:3000/comments/getByPostId/${_id}/${page}/3`, {
+        headers: {
+          Authorization: `Bearer ${
+            document.cookie.split("accessToken=")[1].split(";")[0]
+          }`,
+        },
+      })
       .then((response) => {
         console.log(response.data);
+        setComments(response.data.comments);
+        setTotalPages(response.data.totalPages);
       })
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  };
 
   useEffect(() => {
     if (liked) {
@@ -140,6 +155,7 @@ const Post: FC<PostProps> = ({
         {
           postId: _id,
           comment: data.comment,
+          ownerName: userName,
         },
         {
           headers: {
@@ -151,6 +167,7 @@ const Post: FC<PostProps> = ({
       )
       .then((response) => {
         console.log(response.data);
+        fetchComments();
       })
       .catch((error) => {
         console.error(error);
@@ -159,58 +176,103 @@ const Post: FC<PostProps> = ({
 
   return (
     <div
-      className="card mb-3 shadow-sm border-light mx-auto"
-      style={{ maxWidth: "300px" }}
+      className="card mx-auto shadow-sm border-light"
+      style={{ maxWidth: "400px", borderRadius: "15px" }}
     >
-      {/* Card Header */}
-      <div className="card-header bg-primary text-white p-2 text-center">
-        <h5 className="card-title mb-0">{title}</h5>
+      {/* User Info */}
+      <div className="d-flex align-items-center p-2">
+        <img
+          src={userProfile}
+          alt="User"
+          className="rounded-circle me-2"
+          style={{ width: "40px", height: "40px" }}
+        />
+        <span className="fw-bold">{ownerName}</span>
+        <span className="text-muted ms-auto">{title}</span>
       </div>
 
-      {/* Card Body */}
-      <div className="card-body p-3">
-        <p className="card-text text-secondary">{content}</p>
-      </div>
-
-      {/* Card Footer with Image */}
-      <div className="card-body text-muted p-2 text-center">
+      {/* Post Image */}
+      <div className="text-center">
         <img
           src={photo}
-          alt="Post Image"
-          className="img-fluid rounded"
-          style={{ maxHeight: "150px", objectFit: "cover" }}
+          alt="Post"
+          className="img-fluid w-100"
+          style={{ borderRadius: "0", objectFit: "cover" }}
         />
       </div>
 
-      {/* Card Footer with Likes */}
-      <div className="card-footer bg-light p-2 text-center">
-        <p className="mb-0">Likes: {numOfLikes}</p>
-        <img
-          src={heart}
-          alt="like"
-          className="w-25 h-25 cursor-pointer"
-          onClick={handleLike}
-          style={{ maxWidth: "30px", maxHeight: "30px" }}
-        />
+      {/* Like, Comment, Share Icons */}
+      <div className="d-flex justify-content-between align-items-center px-3 py-2">
+        <div>
+          <img
+            src={heart}
+            alt="like"
+            className="me-2 cursor-pointer"
+            onClick={handleLike}
+            style={{ width: "24px" }}
+          />
+        </div>
       </div>
 
-      {/* Card Footer with Comment Section */}
-      <div className="card-footer bg-light p-2 text-center">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="input-group">
-            <input
-              type="text"
-              {...register("comment")}
-              className={`form-control ${errors.comment ? "is-invalid" : ""}`}
-              placeholder="Add a comment"
-            />
-            {errors.comment && (
-              <div className="invalid-feedback">{errors.comment.message}</div>
-            )}
-            <button type="submit" className="btn btn-primary ms-2">
-              Add Comment
-            </button>
-          </div>
+      {/* Likes Count */}
+      <p className="px-3 mb-1">
+        <strong>Likes: {numOfLikes}</strong>
+      </p>
+
+      {/* Post Content */}
+      <div className="px-3">
+        <strong>
+          <p className="mb-1">
+            {ownerName} {content}
+          </p>
+        </strong>
+      </div>
+
+      {/* Comments Section */}
+      <div className="px-3">
+        {comments.map((comment: comment) => (
+          <p key={comment._id} className="mb-1">
+            <strong>{comment.ownerName}</strong> {comment.comment}
+          </p>
+        ))}
+        {totalPages >= page && 1 < page && (
+          <button
+            className="btn btn-sm text-muted"
+            onClick={() => setPage(page - 1)}
+          >
+            Load previous
+          </button>
+        )}
+        {totalPages > 1 && totalPages > page && (
+          <button
+            className="btn btn-sm text-muted"
+            onClick={() => setPage(page + 1)}
+          >
+            Load more
+          </button>
+        )}
+      </div>
+
+      {/* Comment Input */}
+      <div className="px-3 py-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="d-flex align-items-center"
+        >
+          <input
+            type="text"
+            {...register("comment")}
+            className={`form-control form-control-sm me-2 ${
+              errors.comment ? "is-invalid" : ""
+            }`}
+            placeholder="Add a comment..."
+          />
+          {errors.comment && (
+            <div className="invalid-feedback">{errors.comment.message}</div>
+          )}
+          <button type="submit" className="btn btn-sm btn-primary">
+            Post
+          </button>
         </form>
       </div>
     </div>
