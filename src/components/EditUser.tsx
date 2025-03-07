@@ -3,8 +3,18 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import avatar from "../assets/icons8-avatar-96.png"
+import avatar from "../assets/icons8-avatar-96.png";
 import { useNavigate } from "react-router";
+
+type Post = {
+  title: string;
+  content: string;
+  photo: string;
+  likes: number;
+  _id: string;
+  ownerName: string;
+  ownerPhoto: string;
+};
 
 const apiClient = axios.create({
   baseURL: "http://localhost:3000",
@@ -22,7 +32,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const EditUser = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -34,15 +44,22 @@ const EditUser = () => {
   const [userName, setUserName] = useState<string>("user");
   const [updateName, setUpdateName] = useState("");
   const [updateEmail, setUpdateEmail] = useState("");
-  const [updateProfileImage, setUpdateProfileImage] = useState<File|null>(null);
+  const [updateProfileImage, setUpdateProfileImage] = useState<File | null>(
+    null
+  );
   const [showPreviousPassword, setShowPreviousPassword] = useState(false);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
 
   const togglePreviousPasswordVisibility = () => {
     setShowPreviousPassword((prev) => !prev);
   };
 
   useEffect(() => {
-    axios
+    if (!document.cookie.includes("accessToken")) {
+      navigate("/");
+    }
+    const loadPageInfo = async () => {
+      await axios
       .get("http://localhost:3000/auth/getUserInfo", {
         withCredentials: true,
         headers: {
@@ -52,6 +69,7 @@ const EditUser = () => {
         },
       })
       .then((response) => {
+        console.log(response)
         setProfileImage(response.data.profileImageUrl);
         setUserName(response.data.userName);
         setUpdateName(response.data.userName);
@@ -61,6 +79,25 @@ const EditUser = () => {
         console.error(error);
         setProfileImage("");
       });
+
+    await axios
+      .get("http://localhost:3000/posts/getByUserId", {
+        headers: {
+          Authorization: `Bearer ${
+            document.cookie.split("accessToken=")[1].split(";")[0]
+          }`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data)
+        setUserPosts(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+        setUserPosts([]);
+      });
+    }
+    loadPageInfo();
   }, []);
 
   const changeUpdateImage = (e: any) => {
@@ -72,9 +109,12 @@ const EditUser = () => {
     console.log(data);
     reset();
     let url = updateProfileImage;
-    console.log(updateProfileImage)
+    console.log(updateProfileImage);
     const formData = new FormData();
-    if (updateProfileImage && URL.createObjectURL(updateProfileImage) !== profileImage) {
+    if (
+      updateProfileImage &&
+      URL.createObjectURL(updateProfileImage) !== profileImage
+    ) {
       formData.append("file", updateProfileImage);
       await apiClient
         .post("/file?file=123.jpeg", formData, {
@@ -94,42 +134,48 @@ const EditUser = () => {
           console.log(err);
           alert("An error occurred. Please try again.");
         });
-      }
-      await axios
-        .put(
-          "http://localhost:3000/auth",
-          {
-            email: data.email,
-            userName: data.userName,
-            password: data.previousPassword,
-            profileImageUrl: url,
+    }
+    await axios
+      .put(
+        "http://localhost:3000/auth",
+        {
+          email: data.email,
+          userName: data.userName,
+          password: data.previousPassword,
+          profileImageUrl: url,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${
+              document.cookie.split("accessToken=")[1].split(";")[0]
+            }`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${
-                document.cookie.split("accessToken=")[1].split(";")[0]
-              }`,
-            },
-          }
-        )
-        .then((response) => {
-          console.log(response);
-          if (response.status === 200) {
-            alert("User updated successfully");
-            window.location.reload();
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-          alert("An error occurred. Please try again.");
-        });
+        }
+      )
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200) {
+          alert("User updated successfully");
+          window.location.reload();
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("An error occurred. Please try again.");
+      });
   };
 
   return (
     <div>
       <div className="text-center mb-4">
         <h1 className="fw-bold">Hi {userName}</h1>
-        <button onClick={() => {navigate("/")}}>Back to home page</button>
+        <button
+          onClick={() => {
+            navigate("/");
+          }}
+        >
+          Back to home page
+        </button>
       </div>
 
       {profileImage && (
@@ -153,7 +199,11 @@ const EditUser = () => {
             }}
           >
             <img
-              src={updateProfileImage ? URL.createObjectURL(updateProfileImage): profileImage}
+              src={
+                updateProfileImage
+                  ? URL.createObjectURL(updateProfileImage)
+                  : profileImage
+              }
               style={{ width: "200px", height: "200px", alignSelf: "center" }}
             />
           </div>

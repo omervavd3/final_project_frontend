@@ -6,6 +6,7 @@ import { z } from "zod";
 import heart_black from "../assets/heart_black.png";
 import heart_red from "../assets/heart_red.png";
 import { useNavigate } from "react-router";
+import trash from '../assets/trash.png'
 
 type PostProps = {
   title: string;
@@ -186,8 +187,8 @@ const Post: FC<PostProps> = ({
       });
   };
 
-  const handleEditPost = (_id:string) => {
-    navigate(`/editPost/${_id}`)
+  const handleViewPost = (_id:string) => {
+    navigate(`/viewPost/${_id}`)
   }
 
   return (
@@ -205,8 +206,7 @@ const Post: FC<PostProps> = ({
         />
         <span className="fw-bold">{ownerName}</span>
         <span className="text-muted ms-auto">{title}</span>
-        {/* {(userName === ownerName) && (<span className="ms-auto cursor-pointer" onClick={() => {handleEditPost(_id)}}>...</span>)} */}
-        {(isOwner || userName == ownerName) && (<span>...</span>)}
+        <span className=" ms-auto" onClick={() => {handleViewPost(_id)}}>View</span>
       </div>
 
       {/* Post Image */}
@@ -247,10 +247,12 @@ const Post: FC<PostProps> = ({
       </div>
 
       {/* Comments Section */}
+      {comments.length > 0 && <p className="px-3 mb-1">Total comments: {comments.length}</p>}
       <div className="px-3">
         {comments.map((comment: comment) => (
           <p key={comment._id} className="mb-1">
             <strong>{comment.ownerName}</strong> {comment.comment}
+            {userName === comment.ownerName && (<img src={trash} alt="delete" className="cursor-pointer ms-2" onClick={() => {console.log("delete")}}/>)}
           </p>
         ))}
         {totalPages >= page && 1 < page && (
