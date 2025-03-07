@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import avatar from "../assets/icons8-avatar-96.png"
+import { useNavigate } from "react-router";
 
 const apiClient = axios.create({
   baseURL: "http://localhost:3000",
@@ -21,6 +22,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const EditUser = () => {
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -127,6 +129,7 @@ const EditUser = () => {
     <div>
       <div className="text-center mb-4">
         <h1 className="fw-bold">Hi {userName}</h1>
+        <button onClick={() => {navigate("/")}}>Back to home page</button>
       </div>
 
       {profileImage && (

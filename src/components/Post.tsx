@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import heart_black from "../assets/heart_black.png";
 import heart_red from "../assets/heart_red.png";
+import { useNavigate } from "react-router";
 
 type PostProps = {
   title: string;
@@ -37,14 +38,25 @@ const Post: FC<PostProps> = ({
     comment: z.string().nonempty("Comment is required"),
   });
 
+  const navigate = useNavigate()
+
   const [liked, setLiked] = useState(false);
   const [heart, setHeart] = useState(heart_black);
   const [numOfLikes, setNumOfLikes] = useState(likes);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [comments, setComments] = useState([]);
+  const [isOwner, setIsOwner] = useState(false);
 
   type FormData = z.infer<typeof schema>;
+
+  useEffect(() => {
+    console.log(userName, ownerName);
+    if (userName === ownerName) {
+      setIsOwner(true);
+      console.log("here")
+    }
+  }, []);
 
   useEffect(() => {
     fetchComments();
@@ -174,6 +186,10 @@ const Post: FC<PostProps> = ({
       });
   };
 
+  const handleEditPost = (_id:string) => {
+    navigate(`/editPost/${_id}`)
+  }
+
   return (
     <div
       className="card mx-auto shadow-sm border-light"
@@ -189,6 +205,8 @@ const Post: FC<PostProps> = ({
         />
         <span className="fw-bold">{ownerName}</span>
         <span className="text-muted ms-auto">{title}</span>
+        {/* {(userName === ownerName) && (<span className="ms-auto cursor-pointer" onClick={() => {handleEditPost(_id)}}>...</span>)} */}
+        {(isOwner || userName == ownerName) && (<span>...</span>)}
       </div>
 
       {/* Post Image */}
