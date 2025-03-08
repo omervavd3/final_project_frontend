@@ -53,6 +53,7 @@ const Navbar: FC<NavbarProps> = ({ userName, profileImageUrl }) => {
                 <button
                   className="btn btn-outline-primary rounded-pill px-3"
                   onClick={() => setShowModal(true)}
+                  style={{minWidth: "125px"}}
                 >
                   + Add Post
                 </button>
@@ -63,6 +64,7 @@ const Navbar: FC<NavbarProps> = ({ userName, profileImageUrl }) => {
                 <button
                   className="btn btn-outline-secondary rounded-pill px-3"
                   onClick={() => navigate("/editUser")}
+                  style={{minWidth: "125px", margin:"5px 0"}}
                 >
                   ✏️ Edit User
                 </button>
@@ -92,6 +94,7 @@ const Navbar: FC<NavbarProps> = ({ userName, profileImageUrl }) => {
                   type="button"
                   className="btn-close"
                   onClick={() => setShowModal(false)}
+                  style={{minWidth: "125px"}}
                 ></button>
               </div>
               <div className="modal-body">
@@ -104,6 +107,7 @@ const Navbar: FC<NavbarProps> = ({ userName, profileImageUrl }) => {
                 <button
                   type="button"
                   className="btn btn-secondary rounded-pill px-3"
+                  style={{minWidth: "125px"}}
                   onClick={() => setShowModal(false)}
                 >
                   Close

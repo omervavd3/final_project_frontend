@@ -28,6 +28,7 @@ const Logout = () => {
   return <button
   className="btn btn-danger rounded-pill px-3 fw-bold"
   onClick={logout}
+  style={{minWidth: "125px"}}
 >
   🚪 Log Out
 </button>
