@@ -58,30 +58,14 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-4">
       <AuthAccess where_to_navigate="/" />
+
       {/* Navbar */}
       <Navbar userName={userName} profileImageUrl={profileImage} />
 
-      {/* Page Title */}
-      <div className="text-center mb-4">
-        <h1 className="fw-bold">Welcome {userName}</h1>
-      </div>
-
-      {/* Profile Image */}
-      {profileImage && (
-        <div className="text-center mb-3">
-          <img
-            src={profileImage}
-            alt="Profile"
-            className="img-fluid rounded-circle border border-secondary"
-            style={{ width: "150px", height: "150px", objectFit: "cover" }}
-          />
-        </div>
-      )}
-
       {/* Posts Section */}
-      <div className="row">
+      <div className="row justify-content-center">
         {posts && posts.length > 0 ? (
           [...posts]
             .sort(
@@ -89,16 +73,18 @@ const HomePage = () => {
             )
             .map((post, index) => (
               <div key={index} className="col-md-6 col-lg-4 mb-4">
-                <Post
-                  title={post.title}
-                  content={post.content}
-                  photo={post.photo}
-                  likes={post.likes}
-                  _id={post._id}
-                  userName={userName}
-                  ownerPhoto={post.ownerPhoto}
-                  ownerName={post.ownerName}
-                />
+                <div>
+                  <Post
+                    title={post.title}
+                    content={post.content}
+                    photo={post.photo}
+                    likes={post.likes}
+                    _id={post._id}
+                    userName={userName}
+                    ownerPhoto={post.ownerPhoto}
+                    ownerName={post.ownerName}
+                  />
+                </div>
               </div>
             ))
         ) : (

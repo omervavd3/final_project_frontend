@@ -25,7 +25,13 @@ const Logout = () => {
         console.error(error);
       });
   };
-  return <button onClick={logout}>Log out</button>;
+  return <button
+  className="btn btn-danger rounded-pill px-3 fw-bold"
+  onClick={logout}
+>
+  🚪 Log Out
+</button>
+;
 };
 
 export default Logout;

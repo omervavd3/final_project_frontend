@@ -6,7 +6,7 @@ import { z } from "zod";
 import heart_black from "../assets/heart_black.png";
 import heart_red from "../assets/heart_red.png";
 import { useNavigate } from "react-router";
-import trash from '../assets/trash.png'
+import trash from "../assets/trash.png";
 
 type PostProps = {
   title: string;
@@ -39,7 +39,7 @@ const Post: FC<PostProps> = ({
     comment: z.string().nonempty("Comment is required"),
   });
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [liked, setLiked] = useState(false);
   const [heart, setHeart] = useState(heart_black);
@@ -47,17 +47,9 @@ const Post: FC<PostProps> = ({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [comments, setComments] = useState([]);
-  const [isOwner, setIsOwner] = useState(false);
+  const [totalComments, setTotalComments] = useState(0);
 
   type FormData = z.infer<typeof schema>;
-
-  useEffect(() => {
-    console.log(userName, ownerName);
-    if (userName === ownerName) {
-      setIsOwner(true);
-      console.log("here")
-    }
-  }, []);
 
   useEffect(() => {
     fetchComments();
@@ -76,6 +68,7 @@ const Post: FC<PostProps> = ({
         console.log(response.data);
         setComments(response.data.comments);
         setTotalPages(response.data.totalPages);
+        setTotalComments(response.data.totalComments);
       })
       .catch((error) => {
         console.error(error);
@@ -187,14 +180,32 @@ const Post: FC<PostProps> = ({
       });
   };
 
-  const handleViewPost = (_id:string) => {
-    navigate(`/viewPost/${_id}`)
-  }
+  const handleDeleteComment = (commentId: string) => {
+    axios
+      .delete(`http://localhost:3000/comments/${commentId}`, {
+        headers: {
+          Authorization: `Bearer ${
+            document.cookie.split("accessToken=")[1].split(";")[0]
+          }`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        fetchComments();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const handleViewPost = (_id: string) => {
+    navigate(`/viewPost/${_id}`);
+  };
 
   return (
     <div
-      className="card mx-auto shadow-sm border-light"
-      style={{ maxWidth: "400px", borderRadius: "15px" }}
+      className="card mx-auto shadow-sm border-light d-flex flex-column"
+      style={{ maxWidth: "400px", borderRadius: "15px", minHeight: "596px" }}
     >
       {/* User Info */}
       <div className="d-flex align-items-center p-2">
@@ -206,7 +217,14 @@ const Post: FC<PostProps> = ({
         />
         <span className="fw-bold">{ownerName}</span>
         <span className="text-muted ms-auto">{title}</span>
-        <span className=" ms-auto" onClick={() => {handleViewPost(_id)}}>View</span>
+        {userName === ownerName && (
+          <span
+            className="ms-2 text-primary cursor-pointer"
+            onClick={() => handleViewPost(_id)}
+          >
+            Edit
+          </span>
+        )}
       </div>
 
       {/* Post Image */}
@@ -215,7 +233,12 @@ const Post: FC<PostProps> = ({
           src={photo}
           alt="Post"
           className="img-fluid w-100"
-          style={{ borderRadius: "0", objectFit: "cover" }}
+          style={{
+            height: "250px",
+            objectFit: "cover",
+            borderTopLeftRadius: "15px",
+            borderTopRightRadius: "15px",
+          }}
         />
       </div>
 
@@ -239,22 +262,49 @@ const Post: FC<PostProps> = ({
 
       {/* Post Content */}
       <div className="px-3">
-        <strong>
-          <p className="mb-1">
-            {ownerName} {content}
-          </p>
-        </strong>
+        <p className="mb-1">
+          <strong>{ownerName}</strong> {content}
+        </p>
       </div>
 
       {/* Comments Section */}
-      {comments.length > 0 && <p className="px-3 mb-1">Total comments: {comments.length}</p>}
-      <div className="px-3">
+      {comments.length > 0 ? (
+        <p className="px-3 mb-1 text-muted">
+          Total comments: {totalComments}
+        </p>
+      ) :
+      (
+        <p className="px-3 mb-1 text-muted">
+          No comments
+        </p>
+      )}
+      <div
+        className="px-3 flex-grow-1"
+        style={{ maxHeight: "150px", overflowY: "auto" }}
+      >
         {comments.map((comment: comment) => (
-          <p key={comment._id} className="mb-1">
-            <strong>{comment.ownerName}</strong> {comment.comment}
-            {userName === comment.ownerName && (<img src={trash} alt="delete" className="cursor-pointer ms-2" onClick={() => {console.log("delete")}}/>)}
-          </p>
+          <div
+            key={comment._id}
+            className="d-flex justify-content-between align-items-center mb-1"
+          >
+            <p className="mb-0">
+              <strong>{comment.ownerName}</strong> {comment.comment}
+            </p>
+            {(userName === comment.ownerName || userName === ownerName) && (
+              <img
+                src={trash}
+                alt="delete"
+                className="cursor-pointer ms-2"
+                onClick={() => handleDeleteComment(comment._id)}
+                style={{ width: "16px", height: "16px" }}
+              />
+            )}
+          </div>
         ))}
+      </div>
+
+      {/* Pagination Buttons */}
+      <div className="px-3 text-center">
         {totalPages >= page && 1 < page && (
           <button
             className="btn btn-sm text-muted"
@@ -273,8 +323,8 @@ const Post: FC<PostProps> = ({
         )}
       </div>
 
-      {/* Comment Input */}
-      <div className="px-3 py-2">
+      {/* Comment Input - Sticks to Bottom */}
+      <div className="px-3 py-2 mt-auto bg-white">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="d-flex align-items-center"

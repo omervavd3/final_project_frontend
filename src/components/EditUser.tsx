@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import avatar from "../assets/icons8-avatar-96.png";
 import { useNavigate } from "react-router";
+import Post from "./Post";
 
 type Post = {
   title: string;
@@ -14,6 +15,7 @@ type Post = {
   _id: string;
   ownerName: string;
   ownerPhoto: string;
+  date: string;
 };
 
 const apiClient = axios.create({
@@ -60,43 +62,47 @@ const EditUser = () => {
     }
     const loadPageInfo = async () => {
       await axios
-      .get("http://localhost:3000/auth/getUserInfo", {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${
-            document.cookie.split("accessToken=")[1].split(";")[0]
-          }`,
-        },
-      })
-      .then((response) => {
-        console.log(response)
-        setProfileImage(response.data.profileImageUrl);
-        setUserName(response.data.userName);
-        setUpdateName(response.data.userName);
-        setUpdateEmail(response.data.email);
-      })
-      .catch((error) => {
-        console.error(error);
-        setProfileImage("");
-      });
+        .get("http://localhost:3000/auth/getUserInfo", {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${
+              document.cookie.split("accessToken=")[1].split(";")[0]
+            }`,
+          },
+        })
+        .then((response) => {
+          console.log(response);
+          setProfileImage(response.data.profileImageUrl);
+          setUserName(response.data.userName);
+          setUpdateName(response.data.userName);
+          setUpdateEmail(response.data.email);
+        })
+        .catch((error) => {
+          console.error(error);
+          setProfileImage("");
+        });
 
-    await axios
-      .get("http://localhost:3000/posts/getByUserId", {
-        headers: {
-          Authorization: `Bearer ${
-            document.cookie.split("accessToken=")[1].split(";")[0]
-          }`,
-        },
-      })
-      .then((response) => {
-        console.log(response.data)
-        setUserPosts(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-        setUserPosts([]);
-      });
-    }
+      await axios
+        .post(
+          "http://localhost:3000/posts/getByUserId",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${
+                document.cookie.split("accessToken=")[1].split(";")[0]
+              }`,
+            },
+          }
+        )
+        .then((response) => {
+          console.log(response.data);
+          setUserPosts(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+          setUserPosts([]);
+        });
+    };
     loadPageInfo();
   }, []);
 
@@ -166,14 +172,10 @@ const EditUser = () => {
   };
 
   return (
-    <div>
+    <div className="container mt-4">
       <div className="text-center mb-4">
-        <h1 className="fw-bold">Hi {userName}</h1>
-        <button
-          onClick={() => {
-            navigate("/");
-          }}
-        >
+        <h1 className="fw-bold">@{userName}</h1>
+        <button className="btn btn-secondary" onClick={() => navigate("/")}>
           Back to home page
         </button>
       </div>
@@ -189,128 +191,153 @@ const EditUser = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="mb-3">
+      <div className="accordion" id="editProfileAccordion">
+        <div className="accordion-item">
+          <h2 className="accordion-header">
+            <button
+              className="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseProfile"
+              aria-expanded="false"
+              aria-controls="collapseProfile"
+            >
+              Edit Profile
+            </button>
+          </h2>
           <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              position: "relative",
-            }}
+            id="collapseProfile"
+            className="accordion-collapse collapse"
+            data-bs-parent="#editProfileAccordion"
           >
-            <img
-              src={
-                updateProfileImage
-                  ? URL.createObjectURL(updateProfileImage)
-                  : profileImage
-              }
-              style={{ width: "200px", height: "200px", alignSelf: "center" }}
-            />
-          </div>
-          <input
-            onChange={changeUpdateImage}
-            type="file"
-            className="mb-3"
-            accept="image/jpeg, image/png"
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="name" className="form-label">
-            User name
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="name"
-            value={updateName}
-            {...register("userName")}
-            onChange={(e) => setUpdateName(e.target.value)}
-          ></input>
-          {errors.userName && (
-            <div className="invalid-feedback">{errors.userName.message}</div>
-          )}
-        </div>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            User email
-          </label>
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            value={updateEmail}
-            {...register("email")}
-            onChange={(e) => setUpdateEmail(e.target.value)}
-          ></input>
-          {errors.email && (
-            <div className="invalid-feedback">{errors.email.message}</div>
-          )}
-        </div>
+            <div className="accordion-body">
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="mb-3 text-center">
+                  <img
+                    src={
+                      updateProfileImage
+                        ? URL.createObjectURL(updateProfileImage)
+                        : profileImage
+                    }
+                    className="rounded-circle border border-secondary"
+                    style={{
+                      width: "200px",
+                      height: "200px",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <input
+                    type="file"
+                    className="form-control mt-3"
+                    accept="image/jpeg, image/png"
+                    onChange={changeUpdateImage}
+                  />
+                </div>
 
-        {/* <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Change password
-          </label>
-          <input
-            type={showPassword ? "text" : "password"}
-            className={`form-control ${errors.password ? "is-invalid" : ""}`}
-            id="password"
-            placeholder="Enter password"
-            {...register("password")}
-          />
-          {errors.password && (
-            <div className="invalid-feedback">{errors.password.message}</div>
-          )}
-          <div className="form-check mt-2">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="showPassword"
-              checked={showPassword}
-              onChange={togglePasswordVisibility}
-            />
-            <label className="form-check-label" htmlFor="showPassword">
-              Show Password
-            </label>
-          </div>
-        </div> */}
+                <div className="mb-3">
+                  <label htmlFor="name" className="form-label">
+                    User name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="name"
+                    value={updateName}
+                    {...register("userName")}
+                    onChange={(e) => setUpdateName(e.target.value)}
+                  />
+                  {errors.userName && (
+                    <div className="invalid-feedback">
+                      {errors.userName.message}
+                    </div>
+                  )}
+                </div>
 
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Enter previous password
-          </label>
-          <input
-            type={showPreviousPassword ? "text" : "password"}
-            className={`form-control ${
-              errors.previousPassword ? "is-invalid" : ""
-            }`}
-            id="previousPassword"
-            placeholder="Enter password"
-            {...register("previousPassword")}
-          />
-          {errors.previousPassword && (
-            <div className="invalid-feedback">
-              {errors.previousPassword.message}
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">
+                    User email
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    value={updateEmail}
+                    {...register("email")}
+                    onChange={(e) => setUpdateEmail(e.target.value)}
+                  />
+                  {errors.email && (
+                    <div className="invalid-feedback">
+                      {errors.email.message}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="previousPassword" className="form-label">
+                    Enter previous password
+                  </label>
+                  <div className="input-group">
+                    <input
+                      type={showPreviousPassword ? "text" : "password"}
+                      className={`form-control ${
+                        errors.previousPassword ? "is-invalid" : ""
+                      }`}
+                      id="previousPassword"
+                      placeholder="Enter password"
+                      {...register("previousPassword")}
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="button"
+                      onClick={togglePreviousPasswordVisibility}
+                    >
+                      {showPreviousPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  {errors.previousPassword && (
+                    <div className="invalid-feedback">
+                      {errors.previousPassword.message}
+                    </div>
+                  )}
+                </div>
+
+                <button type="submit" className="btn btn-primary w-100 mt-3">
+                  Update
+                </button>
+              </form>
             </div>
-          )}
-          <div className="form-check mt-2">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="showPreviousPassword"
-              checked={showPreviousPassword}
-              onChange={togglePreviousPasswordVisibility}
-            />
-            <label className="form-check-label" htmlFor="showPassword">
-              Show Password
-            </label>
           </div>
         </div>
+      </div>
 
-        <button type="submit" className="btn btn-primary w-100 mt-3">
-          Update
-        </button>
-      </form>
+      <div className="row justify-content-center">
+        {userPosts && userPosts.length > 0 ? (
+          [...userPosts]
+            .sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            )
+            .map((post, index) => (
+              <div key={index} className="col-md-6 col-lg-4 mb-4">
+                <div>
+                  <Post
+                    title={post.title}
+                    content={post.content}
+                    photo={post.photo}
+                    likes={post.likes}
+                    _id={post._id}
+                    userName={userName}
+                    ownerPhoto={post.ownerPhoto}
+                    ownerName={post.ownerName}
+                  />
+                </div>
+              </div>
+            ))
+        ) : (
+          <div className="col-12 text-center">
+            <p className="text-muted">No posts available</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

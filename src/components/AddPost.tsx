@@ -90,6 +90,8 @@ const AddPost:FC<AddPostProps> = ({userName, profileImageUrl}) => {
           console.log(err);
           alert("An error occurred. Please try again.");
         });
+    } else {
+      alert("Please upload an image");
     }
   };
 
